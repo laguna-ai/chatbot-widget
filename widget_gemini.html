@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Widget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #chat-widget-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        #chat-popup {
+            height: 70vh;
+            max-height: 500px;
+            width: 90vw; /* Ancho adaptable para móviles */
+            max-width: 370px; /* Ancho máximo para escritorio */
+        }
+        #chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .typing-indicator-dot {
+            animation: typing-blink 1.4s infinite both;
+        }
+        .typing-indicator-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing-blink {
+            0% { opacity: 0.2; }
+            20% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+    </style>
+</head>
+<body class="font-sans"> <div id="chat-widget-container">
+        <button id="chat-toggle-button" class="bg-blue-600 text-white p-3 sm:p-4 rounded-full shadow-lg hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 5.523-4.477 10-10 10S1 17.523 1 12c0-3.031 1.347-5.762 3.5-7.686V1.5A.5.5 0 015 1h14a.5.5 0 01.5.5v2.814C21.653 6.238 23 8.969 23 12z" />
+            </svg>
+        </button>
+
+        <div id="chat-popup" class="hidden bg-white rounded-xl shadow-xl flex flex-col transition-all duration-300 ease-in-out">
+            <div class="bg-blue-600 text-white p-4 flex justify-between items-center rounded-t-xl">
+                <h3 class="text-lg font-semibold">Asistente Virtual</h3>
+                <button id="close-chat-button" class="text-white hover:text-gray-200 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="chat-messages" class="flex-1 p-4 space-y-3 overflow-y-auto bg-gray-50">
+                <div class="flex justify-start">
+                    <div class="bg-gray-200 text-gray-800 py-2 px-3 rounded-lg max-w-[80%] shadow">
+                        <p>¡Hola! ¿Cómo puedo ayudarte hoy?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 sm:p-4 border-t border-gray-200 bg-white rounded-b-xl">
+                <div class="flex space-x-2 items-center">
+                    <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow">
+                    <button id="send-button" class="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 16.571V11a1 1 0 112 0v5.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatToggleButton = document.getElementById('chat-toggle-button');
+        const closeChatButton = document.getElementById('close-chat-button');
+        const chatPopup = document.getElementById('chat-popup');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+
+        // IMPORTANTE: Reemplaza esto con la URL de tu función de Azure
+        const CHATBOT_API_URL = 'TU_AZURE_FUNCTION_APP_URL/api/webhook'; 
+        // Ejemplo: 'https://mi-chatbot-app.azurewebsites.net/api/webhook'
+
+        let currentSessionId = getOrGenerateSessionId();
+        let chatHistoryForApi = []; // Para mantener un historial simple si es necesario para la API
+
+        // --- Funciones del Widget ---
+
+        function toggleChatPopup() {
+            chatPopup.classList.toggle('hidden');
+            if (!chatPopup.classList.contains('hidden')) {
+                chatInput.focus();
+                // Opcional: Enviar un evento de "bienvenida" o cargar historial si es necesario
+            }
+        }
+
+        function getOrGenerateSessionId() {
+            // Intenta obtener el ID de sesión del almacenamiento local (persiste entre recargas de página)
+            let sessionId = localStorage.getItem('chatbotSessionId');
+            if (!sessionId) {
+                // Genera un nuevo ID de sesión (UUID simple)
+                sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                localStorage.setItem('chatbotSessionId', sessionId);
+            }
+            return sessionId;
+        }
+
+        function addMessageToChat(message, isUserMessage, isLoading = false) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('flex', 'mb-2');
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('py-2', 'px-3', 'rounded-lg', 'max-w-[80%]', 'shadow'); // max-w-[80%] para mejor ajuste
+
+            if (isUserMessage) {
+                messageWrapper.classList.add('justify-end');
+                bubbleDiv.classList.add('bg-blue-500', 'text-white');
+                bubbleDiv.innerHTML = `<p>${escapeHTML(message)}</p>`;
+            } else if (isLoading) {
+                messageWrapper.classList.add('justify-start', 'typing-indicator');
+                bubbleDiv.classList.add('bg-gray-200', 'text-gray-500', 'italic');
+                bubbleDiv.innerHTML = `
+                    <div class="flex items-center space-x-1">
+                        <span class="typing-indicator-dot h-2 w-2 bg-gray-400 rounded-full"></span>
+                        <span class="typing-indicator-dot h-2 w-2 bg-gray-400 rounded-full"></span>
+                        <span class="typing-indicator-dot h-2 w-2 bg-gray-400 rounded-full"></span>
+                    </div>`;
+            } else {
+                messageWrapper.classList.add('justify-start');
+                bubbleDiv.classList.add('bg-gray-200', 'text-gray-800');
+                bubbleDiv.innerHTML = `<p>${escapeHTML(message)}</p>`; // Asumimos que el bot devuelve texto plano o HTML ya sanitizado.
+                                                                  // Si el bot devuelve Markdown, necesitarías un parser.
+            }
+
+            messageWrapper.appendChild(bubbleDiv);
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageWrapper; // Devolver el elemento para poder removerlo (ej: typing indicator)
+        }
+
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return '';
+            return str.replace(/[&<>'"]/g,
+                tag => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;',
+                    "'": '&#39;', '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        async function sendMessage() {
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+
+            addMessageToChat(userMessage, true);
+            // Actualizar el historial simple para la API (opcional, depende de `prepare_history`)
+            // chatHistoryForApi.push({ speaker: "USER", text: userMessage }); 
+
+            chatInput.value = '';
+            const typingIndicatorElement = addMessageToChat('', false, true); // Mostrar indicador de "escribiendo"
+
+            // Construir el payload para la API de Azure Function
+            // Esto asume que tu API espera una estructura similar a la de Dialogflow
+            const requestPayload = {
+                session: `projects/YOUR_PROJECT_ID/agent/sessions/${currentSessionId}`, // Formato típico de Dialogflow para session ID
+                                                                                       // O simplemente `currentSessionId` si tu `get_personal_info` lo maneja así.
+                                                                                       // ¡DEBES AJUSTAR ESTO!
+                queryInput: {
+                    text: {
+                        text: userMessage,
+                        languageCode: 'es' // Ajusta según sea necesario
+                    }
+                }
+                // Si `prepare_history` espera el historial en el request:
+                // ,webhookState: { // o un campo similar que use tu `prepare_history`
+                //    history: chatHistoryForApi 
+                // }
+            };
+            
+            // Si tu `get_personal_info` es más simple y solo espera `prompt` y `session_id` directamente:
+            /*
+            const requestPayload = {
+                prompt: userMessage,
+                session_id: currentSessionId
+                // y cualquier otra cosa que `prepare_history` pueda necesitar del request_json
+            };
+            */
+
+
+            try {
+                const response = await fetch(CHATBOT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Si tu Azure Function está protegida por una clave de API (Function Key):
+                        // 'x-functions-key': 'TU_AZURE_FUNCTION_KEY' 
+                    },
+                    body: JSON.stringify(requestPayload)
+                });
+
+                if (typingIndicatorElement) {
+                    chatMessages.removeChild(typingIndicatorElement); // Remover indicador
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error de API:', response.status, errorText);
+                    addMessageToChat(`Error del asistente (Código: ${response.status}). Intenta más tarde.`, false);
+                    return;
+                }
+
+                const data = await response.json();
+                
+                // Extraer la respuesta del bot. Esto depende de cómo `create_webhook_response` formatea la salida.
+                // Asumiendo formato Dialogflow:
+                let botMessage = "No se pudo obtener una respuesta."; // Mensaje por defecto
+                if (data.fulfillmentMessages && data.fulfillmentMessages.length > 0) {
+                    const firstMessage = data.fulfillmentMessages[0];
+                    if (firstMessage.text && firstMessage.text.text && firstMessage.text.text.length > 0) {
+                        botMessage = firstMessage.text.text.join('\n'); // Unir si hay múltiples líneas de texto
+                    }
+                } else if (data.reply) { // Si tu API devuelve un campo 'reply' simple
+                    botMessage = data.reply;
+                } else if (data.fulfillmentText) { // Otro formato común de Dialogflow
+                     botMessage = data.fulfillmentText;
+                }
+                // ... puedes añadir más `else if` para otros posibles formatos de tu API.
+
+                addMessageToChat(botMessage, false);
+                // Actualizar el historial simple para la API (opcional)
+                // chatHistoryForApi.push({ speaker: "BOT", text: botMessage });
+
+            } catch (error) {
+                if (typingIndicatorElement && chatMessages.contains(typingIndicatorElement)) {
+                    chatMessages.removeChild(typingIndicatorElement);
+                }
+                console.error('Error al enviar mensaje:', error);
+                addMessageToChat('Error de conexión. Por favor, revisa tu conexión e intenta de nuevo.', false);
+            }
+        }
+
+        // --- Event Listeners ---
+        chatToggleButton.addEventListener('click', toggleChatPopup);
+        closeChatButton.addEventListener('click', toggleChatPopup);
+        sendButton.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) { // Enviar con Enter, permitir Shift+Enter para nueva línea
+                event.preventDefault(); // Prevenir nueva línea en el input
+                sendMessage();
+            }
+        });
+
+        // Pequeña mejora visual: el botón de chat aparece después de un breve retraso
+        setTimeout(() => {
+            chatToggleButton.classList.add('opacity-100', 'transform', 'scale-100');
+            chatToggleButton.classList.remove('opacity-0', 'scale-90');
+        }, 300);
+        chatToggleButton.classList.add('opacity-0', 'scale-90', 'transition-all', 'duration-300', 'ease-out');
+
+
+    });
+    </script>
+
+</body>
+</html>

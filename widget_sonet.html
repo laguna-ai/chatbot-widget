@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Widget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom animations and styles */
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        .pulse-animation { animation: pulse 2s infinite; }
+        
+        /* Custom scrollbar */
+        .chat-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .chat-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 2px;
+        }
+        
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+        
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: inline-flex;
+            gap: 2px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #64748b;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Widget Container -->
+    <div id="chatbot-widget" class="fixed bottom-4 right-4 z-50">
+        <!-- Toggle Button -->
+        <button id="chat-toggle" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 pulse-animation">
+            <svg id="chat-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a9.863 9.863 0 01-4.255-.949L5 20l1.395-3.72C7.512 15.042 9.201 14 12 14c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8c0 2.928 1.175 5.584 3.08 7.52L5 20l.72-1.395z"></path>
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Notification Badge -->
+        <div id="notification-badge" class="absolute -top-2 -left-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">
+            1
+        </div>
+        
+        <!-- Chat Window -->
+        <div id="chat-window" class="absolute bottom-16 right-0 w-80 h-96 bg-white rounded-lg shadow-2xl border border-gray-200 hidden slide-up">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-lg">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-sm">Asistente Virtual</h3>
+                        <p class="text-xs opacity-90">En línea</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages Area -->
+            <div id="messages-container" class="flex-1 p-4 h-64 overflow-y-auto chat-scroll space-y-3">
+                <div class="bot-message flex items-start space-x-2 fade-in">
+                    <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                        </svg>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg px-3 py-2 max-w-xs">
+                        <p class="text-sm text-gray-700">¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="border-t border-gray-200 p-3">
+                <div class="flex space-x-2">
+                    <input 
+                        type="text" 
+                        id="message-input" 
+                        placeholder="Escribe tu mensaje..." 
+                        class="flex-1 border border-gray-300 rounded-full px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                    <button 
+                        id="send-button" 
+                        class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full p-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Typing Indicator -->
+        <div id="typing-indicator" class="bot-message flex items-start space-x-2 fade-in hidden">
+            <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                </svg>
+            </div>
+            <div class="bg-gray-100 rounded-lg px-3 py-2">
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ChatbotWidget {
+            constructor(config = {}) {
+                this.config = {
+                    apiUrl: config.apiUrl || '/api/webhook',
+                    sessionId: config.sessionId || this.generateSessionId(),
+                    welcomeMessage: config.welcomeMessage || '¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
+                    ...config
+                };
+                
+                this.isOpen = false;
+                this.messageHistory = [];
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.loadHistory();
+            }
+            
+            bindEvents() {
+                const toggleBtn = document.getElementById('chat-toggle');
+                const sendBtn = document.getElementById('send-button');
+                const messageInput = document.getElementById('message-input');
+                
+                toggleBtn.addEventListener('click', () => this.toggleChat());
+                sendBtn.addEventListener('click', () => this.sendMessage());
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+                
+                // Close chat when clicking outside
+                document.addEventListener('click', (e) => {
+                    const widget = document.getElementById('chatbot-widget');
+                    if (!widget.contains(e.target) && this.isOpen) {
+                        this.closeChat();
+                    }
+                });
+            }
+            
+            toggleChat() {
+                if (this.isOpen) {
+                    this.closeChat();
+                } else {
+                    this.openChat();
+                }
+            }
+            
+            openChat() {
+                const chatWindow = document.getElementById('chat-window');
+                const chatIcon = document.getElementById('chat-icon');
+                const closeIcon = document.getElementById('close-icon');
+                const notificationBadge = document.getElementById('notification-badge');
+                
+                chatWindow.classList.remove('hidden');
+                chatIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+                notificationBadge.classList.add('hidden');
+                
+                this.isOpen = true;
+                
+                // Focus input
+                setTimeout(() => {
+                    document.getElementById('message-input').focus();
+                }, 300);
+            }
+            
+            closeChat() {
+                const chatWindow = document.getElementById('chat-window');
+                const chatIcon = document.getElementById('chat-icon');
+                const closeIcon = document.getElementById('close-icon');
+                
+                chatWindow.classList.add('hidden');
+                chatIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+                
+                this.isOpen = false;
+            }
+            
+            async sendMessage() {
+                const messageInput = document.getElementById('message-input');
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
+                
+                // Add user message to UI
+                this.addMessage(message, 'user');
+                messageInput.value = '';
+                
+                // Show typing indicator
+                this.showTypingIndicator();
+                
+                try {
+                    // Prepare request payload similar to Dialogflow format
+                    const payload = {
+                        queryResult: {
+                            queryText: message,
+                            intent: {
+                                displayName: 'Default Welcome Intent'
+                            }
+                        },
+                        session: `projects/your-project/agent/sessions/${this.config.sessionId}`,
+                        originalDetectIntentRequest: {
+                            payload: {}
+                        }
+                    };
+                    
+                    // Add conversation history
+                    payload.queryResult.outputContexts = this.messageHistory.map((msg, index) => ({
+                        name: `projects/your-project/agent/sessions/${this.config.sessionId}/contexts/history-${index}`,
+                        parameters: {
+                            message: msg.text,
+                            sender: msg.sender,
+                            timestamp: msg.timestamp
+                        }
+                    }));
+                    
+                    const response = await fetch(this.config.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Extract bot response from webhook response
+                    const botMessage = data.fulfillmentText || 
+                                    data.queryResult?.fulfillmentText || 
+                                    'Lo siento, no pude procesar tu mensaje.';
+                    
+                    // Hide typing indicator and add bot response
+                    this.hideTypingIndicator();
+                    this.addMessage(botMessage, 'bot');
+                    
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    this.hideTypingIndicator();
+                    this.addMessage('Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.', 'bot');
+                }
+            }
+            
+            addMessage(text, sender) {
+                const messagesContainer = document.getElementById('messages-container');
+                const messageElement = document.createElement('div');
+                
+                const timestamp = new Date().toISOString();
+                this.messageHistory.push({ text, sender, timestamp });
+                
+                if (sender === 'user') {
+                    messageElement.className = 'user-message flex items-start space-x-2 justify-end fade-in';
+                    messageElement.innerHTML = `
+                        <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg px-3 py-2 max-w-xs">
+                            <p class="text-sm">${this.escapeHtml(text)}</p>
+                        </div>
+                        <div class="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    `;
+                } else {
+                    messageElement.className = 'bot-message flex items-start space-x-2 fade-in';
+                    messageElement.innerHTML = `
+                        <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                            </svg>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg px-3 py-2 max-w-xs">
+                            <p class="text-sm text-gray-700">${this.escapeHtml(text)}</p>
+                        </div>
+                    `;
+                }
+                
+                messagesContainer.appendChild(messageElement);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                this.saveHistory();
+                
+                // Show notification if chat is closed
+                if (!this.isOpen && sender === 'bot') {
+                    this.showNotification();
+                }
+            }
+            
+            showTypingIndicator() {
+                const messagesContainer = document.getElementById('messages-container');
+                const typingIndicator = document.getElementById('typing-indicator').cloneNode(true);
+                typingIndicator.classList.remove('hidden');
+                typingIndicator.id = 'active-typing-indicator';
+                
+                messagesContainer.appendChild(typingIndicator);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            hideTypingIndicator() {
+                const activeIndicator = document.getElementById('active-typing-indicator');
+                if (activeIndicator) {
+                    activeIndicator.remove();
+                }
+            }
+            
+            showNotification() {
+                const badge = document.getElementById('notification-badge');
+                badge.classList.remove('hidden');
+            }
+            
+            generateSessionId() {
+                return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            saveHistory() {
+                if (typeof Storage !== 'undefined') {
+                    localStorage.setItem(`chatbot_history_${this.config.sessionId}`, JSON.stringify(this.messageHistory));
+                }
+            }
+            
+            loadHistory() {
+                if (typeof Storage !== 'undefined') {
+                    const saved = localStorage.getItem(`chatbot_history_${this.config.sessionId}`);
+                    if (saved) {
+                        this.messageHistory = JSON.parse(saved);
+                        const messagesContainer = document.getElementById('messages-container');
+                        messagesContainer.innerHTML = ''; // Clear welcome message
+                        
+                        this.messageHistory.forEach(msg => {
+                            this.addMessage(msg.text, msg.sender);
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Initialize the chatbot widget
+        document.addEventListener('DOMContentLoaded', function() {
+            window.chatbot = new ChatbotWidget({
+                apiUrl: '/api/webhook', // Change this to your Azure Function URL
+                sessionId: null, // Will auto-generate
+                welcomeMessage: '¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?'
+            });
+        });
+    </script>
+
+    <!-- Optional: Mobile responsiveness -->
+    <style>
+        @media (max-width: 640px) {
+            #chat-window {
+                width: calc(100vw - 2rem);
+                height: calc(100vh - 8rem);
+                bottom: 4rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</body>
+</html>

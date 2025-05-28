@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot Widget</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 p-0">
+  <!-- Botón flotante -->
+  <div id="chatbot-button" class="fixed bottom-4 right-4 z-50">
+    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg">
+      💬 Chat
+    </button>
+  </div>
+
+  <!-- Widget flotante -->
+  <div id="chatbot-widget" class="hidden fixed bottom-20 right-4 w-80 h-[500px] bg-white shadow-xl rounded-xl border border-gray-200 flex flex-col z-50">
+    <div class="bg-blue-600 text-white p-4 rounded-t-xl flex justify-between items-center">
+      <h2 class="text-lg font-semibold">Asistente Virtual</h2>
+      <button id="close-chat" class="text-white text-xl">&times;</button>
+    </div>
+    <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-2 text-sm">
+      <div class="text-gray-500 text-center">Hola 👋 ¿En qué puedo ayudarte?</div>
+    </div>
+    <form id="chat-form" class="p-2 flex gap-2 border-t">
+      <input type="text" id="user-input" class="flex-1 border rounded-md p-2 text-sm" placeholder="Escribe un mensaje..." />
+      <button type="submit" class="bg-blue-600 text-white px-4 rounded-md text-sm">Enviar</button>
+    </form>
+  </div>
+
+  <script>
+    const chatBtn = document.getElementById('chatbot-button');
+    const chatWidget = document.getElementById('chatbot-widget');
+    const closeBtn = document.getElementById('close-chat');
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Generar o recuperar session_id
+    const sessionKey = 'chatbot_session_id';
+    let session_id = localStorage.getItem(sessionKey);
+    if (!session_id) {
+      session_id = crypto.randomUUID();
+      localStorage.setItem(sessionKey, session_id);
+    }
+
+    chatBtn.onclick = () => chatWidget.classList.toggle('hidden');
+    closeBtn.onclick = () => chatWidget.classList.add('hidden');
+
+    chatForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const prompt = userInput.value.trim();
+      if (!prompt) return;
+
+      appendMessage('user', prompt);
+      userInput.value = '';
+      appendMessage('bot', '...');
+
+      try {
+        const res = await fetch('https://TU_ENDPOINT.azurewebsites.net/api/webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, session_id })
+        });
+
+        const data = await res.json();
+        const respuesta = data?.fulfillmentMessages?.[0]?.text?.text?.[0] || 'No se recibió respuesta.';
+        replaceLastBotMessage(respuesta);
+
+      } catch (err) {
+        console.error('Error al llamar al chatbot', err);
+        replaceLastBotMessage('Lo siento, ocurrió un error.');
+      }
+    };
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement('div');
+      msg.className = sender === 'user' ? 'text-right' : 'text-left text-blue-600';
+      msg.innerText = text;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function replaceLastBotMessage(newText) {
+      const msgs = chatMessages.querySelectorAll('div.text-left');
+      if (msgs.length) msgs[msgs.length - 1].innerText = newText;
+    }
+  </script>
+</body>
+</html>
