@@ -32,13 +32,3 @@ document.addEventListener('DOMContentLoaded', function() {
     
 });
 
-// Función para integrar el widget
-function integrateWidget(widgetHTML) {
-    const chatWidget = document.getElementById('chatWidget');
-    chatWidget.innerHTML = widgetHTML;
-    chatWidget.style.background = 'transparent';
-    chatWidget.style.border = 'none';
-}
-
-// Ejemplo de cómo usar la función:
-// integrateWidget('<div>Tu widget de chat aquí</div>');
