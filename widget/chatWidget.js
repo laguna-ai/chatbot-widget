@@ -25,19 +25,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const CHATBOT_API_URL = 'https://funciones-agente.azurewebsites.net/api/webhook';
     const sessionId = getOrGenerateSessionId(); // Obtener session ID
     
+    const initialMessages = [
+        '¡Bienvenido a tu experiencia Learnia! ¿Tienes dudas sobre el contenido, las actividades o la plataforma? Estoy para ti.',
+        '¡Hola! ¿Listo para aprender? Puedo ayudarte con preguntas sobre tus cursos, evaluaciones o cómo avanzar más rápido.',
+        '¡Hola! ¿Tienes preguntas sobre tu progreso, evaluaciones o próximas fechas clave? Pregúntame lo que quieras.'
+    ];
+
+    // Selecciona uno al azar
+    const randomInitialMessage = initialMessages[Math.floor(Math.random() * initialMessages.length)];
+
+
     // Configuración
     const widgetConfig = {
         apiEndpoint: CHATBOT_API_URL,
-        initialMessage: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
-        brandName: 'TuEmpresa',
-        primaryColor: '#0ea5e9',
-        secondaryColor: '#7c3aed',
-        suggestions: [
-            '¿Cuáles son sus horarios?',
-            '¿Cómo contactarlos?',
-            'Información de productos',
-            'Soporte técnico'
-        ]
+        initialMessage: randomInitialMessage
     };
     
     // Inicializar widget
