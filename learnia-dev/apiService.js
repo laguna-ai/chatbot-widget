@@ -1,7 +1,7 @@
 // apiService.js
 
 export function getOrGenerateSessionId() {
-    let sessionId = localStorage.getItem('chatbotSessionId');
+    let sessionId = sessionStorage.getItem('chatbotSessionId');
     if (!sessionId) {
         sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             const r = Math.random() * 16 | 0;
