@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const suggestionsToggle = document.getElementById('suggestions-toggle');
     const quickSuggestions = document.getElementById('quick-suggestions');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
-    
+    const resetSessionBtn = document.getElementById('reset-session');
+
     // Estado
     let isChatOpen = false;
     let isTyping = false;
@@ -79,6 +80,14 @@ document.addEventListener('DOMContentLoaded', function() {
         chatbotToggle.classList.remove('bg-secondary-600', 'hover:bg-secondary-700');
         chatbotToggle.classList.add('bg-primary-600', 'hover:bg-primary-700');
     });
+
+    // Reset Session
+    if (resetSessionBtn) {
+        resetSessionBtn.addEventListener('click', function () {
+            sessionStorage.removeItem('chatbotSessionId');
+            location.reload(); // Opcional: recarga para reiniciar todo
+        });
+    }
     
     // Toggle Quick Suggestions
     suggestionsToggle.addEventListener('click', function() {

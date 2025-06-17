@@ -14,7 +14,8 @@ export function initializeWidget() {
     const suggestionsToggle = document.getElementById('suggestions-toggle');
     const quickSuggestions = document.getElementById('quick-suggestions');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
-    
+    const resetSessionBtn = document.getElementById('reset-session');
+
     // Estado
     let isTyping = false;
     let suggestionsVisible = false;
@@ -55,6 +56,15 @@ export function initializeWidget() {
         });
     }
     
+    // Reset Session
+    if (resetSessionBtn) {
+        resetSessionBtn.addEventListener('click', function () {
+            sessionStorage.removeItem('chatbotSessionId');
+            location.reload(); // Opcional: recarga para reiniciar todo
+        });
+    }
+
+
     // Toggle Quick Suggestions
     if (suggestionsToggle) {
         suggestionsToggle.addEventListener('click', function() {
