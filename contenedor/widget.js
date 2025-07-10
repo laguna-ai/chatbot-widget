@@ -21,12 +21,15 @@ export function initializeWidget() {
     let suggestionsVisible = false;
     let chatHistory = [];
     const CHATBOT_API_URL = 'https://funciones-agente.azurewebsites.net/api/webhook';
+    const startTime = performance.now();
     const sessionId = getOrGenerateSessionId();
+    const endTime = performance.now();
+    console.log(`getOrGenerateSessionId runtime: ${endTime - startTime} ms`);
     
     const initialMessages = [
-        '¡Bienvenido a tu experiencia Learnia! ¿Tienes dudas sobre el contenido, las actividades o la plataforma? Estoy para ti.',
-        '¡Hola! ¿Listo para aprender? Puedo ayudarte con preguntas sobre tus cursos, evaluaciones o cómo avanzar más rápido.',
-        '¡Hola! ¿Tienes preguntas sobre tu progreso, evaluaciones o próximas fechas clave? Pregúntame lo que quieras.'
+        'Hola, soy MentIA, tu mentor virtual en Learnia Academy. ¡Bienvenido a tu experiencia de aprendizaje! ¿Tienes dudas sobre el contenido, las actividades o la plataforma? Estoy para ti.',
+        'Hola, soy MentIA, tu mentor virtual en Learnia Academy. ¿Listo para aprender? Puedo ayudarte con preguntas sobre tus cursos, evaluaciones o cómo avanzar más rápido.',
+        'Hola, soy MentIA, tu mentor virtual en Learnia Academy. ¿Tienes preguntas sobre tu progreso, evaluaciones o próximas fechas clave? Pregúntame lo que quieras.'
     ];
 
     // Selecciona uno al azar
@@ -101,12 +104,15 @@ export function initializeWidget() {
         
         try {
             // Send message to API
+            const startApiCall = performance.now();
             const { botMessage, updatedHistory } = await sendMessageToBot(
                 message, 
                 sessionId, 
                 CHATBOT_API_URL, 
                 chatHistory
             );
+            const endApiCall = performance.now();
+            console.log(`sendMessageToBot runtime: ${endApiCall - startApiCall} ms`);
             
             // Update chat history
             chatHistory = updatedHistory;
