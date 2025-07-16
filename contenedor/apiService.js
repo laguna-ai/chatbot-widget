@@ -32,18 +32,28 @@ export async function sendMessageToBot(userMessage, sessionId, apiUrl, chatHisto
     }
 
     try {
+        const startTime = performance.now();
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestPayload)
         });
 
+        const endTime = performance.now();
+        const runtime = endTime - startTime;
+        console.log(`Neat (Azure) API call runtime: ${runtime.toFixed(2)} ms`);
+
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`API Error: ${response.status} - ${errorText}`);
         }
 
+        const jsonStartTime = performance.now();
         const data = await response.json();
+        const jsonEndTime = performance.now();
+        const jsonRuntime = jsonEndTime - jsonStartTime;
+        console.log(`JSON parsing runtime: ${jsonRuntime.toFixed(2)} ms`);
         
         // Extraer la respuesta del bot
         let botMessage = "No se pudo obtener una respuesta válida";
