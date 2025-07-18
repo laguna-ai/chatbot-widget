@@ -81,3 +81,8 @@
 .suggestion-btn:hover {
     background: #ede9fe; /* primary-100 */
 }
+
+.message-content {
+    white-space: pre-wrap; /* Respeta saltos de línea */
+    line-height: 1.5;
+}
