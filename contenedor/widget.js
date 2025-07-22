@@ -20,7 +20,7 @@ export function initializeWidget() {
     let isTyping = false;
     let suggestionsVisible = false;
     let chatHistory = [];
-    const CHATBOT_API_URL = 'https://server-funcs.azurewebsites.net/api/webhook';
+    const CHATBOT_API_URL = 'http://localhost:7071/api/webhook';
     const startTime = performance.now();
     const sessionId = getOrGenerateSessionId();
     const endTime = performance.now();
