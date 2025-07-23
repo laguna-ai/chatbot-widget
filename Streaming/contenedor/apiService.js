@@ -16,15 +16,19 @@ export function getOrGenerateSessionId() {
 export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHistory, onChunk, onComplete, onError) {
     const sessionPath = `projects/YOUR_PROJECT_ID/locations/us-central1/agents/YOUR_AGENT_ID/sessions/${sessionId}`;
     
+    // Construir el payload según la nueva estructura
     const requestPayload = {
         sessionInfo: {
             session: sessionPath,
-            parameters: {
-                context: chatHistory  // Enviamos el historial aquí
-            }
+            parameters: {}
         },
         text: userMessage
     };
+
+    // Si hay historial, lo incluimos en los parámetros
+    if (chatHistory.length > 0) {
+        requestPayload.sessionInfo.parameters.context = chatHistory;
+    }
 
     fetch(apiUrl, {
         method: 'POST',

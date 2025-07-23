@@ -91,8 +91,6 @@ export function initializeWidget() {
         // Add user message to chat
         addMessage(message, 'user', chatMessages);
         
-        // Actualizar historial local
-        chatHistory.push({ role: 'user', content: message });
         
         userInput.value = '';
         
@@ -132,6 +130,7 @@ export function initializeWidget() {
                 finalizeMessageElement(messageId, fullResponse);
                 
                 // Actualizar historial con la respuesta completa
+                chatHistory.push({ role: 'user', content: message });
                 chatHistory.push({ role: 'assistant', content: fullResponse });
                 
                 hideTypingIndicator(typingIndicator);
@@ -142,9 +141,6 @@ export function initializeWidget() {
                 // On error
                 updateMessageElement(messageId, '❌ Error en la conexión');
                 console.error('Streaming error:', error);
-                
-                // Revertir el último mensaje de usuario en caso de error
-                chatHistory.pop();
                 
                 hideTypingIndicator(typingIndicator);
                 isTyping = false;
