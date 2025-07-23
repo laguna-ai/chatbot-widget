@@ -41,7 +41,7 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="contenedor/widget.css">
+    <link rel="stylesheet" href="contenedor_streaming/widget.css">
 
 </head>
 <body>
@@ -124,14 +124,14 @@
     <script type="module">
         // Cargar el contenido del widget
     const loadWidget = async () => {
-        const response = await fetch('contenedor/widget.html');
+        const response = await fetch('contenedor_streaming/widget.html');
         const html = await response.text();
         const chatWidget = document.getElementById('chatWidget');
         chatWidget.innerHTML = ''; // Limpia el contenido anterior
         chatWidget.innerHTML = html;
         
         // Importar e inicializar el widget
-        const { initializeWidget } = await import('./contenedor/widget.js');
+        const { initializeWidget } = await import('./contenedor_streaming/widget.js');
         initializeWidget();
     };
     
