@@ -6,11 +6,10 @@ function formatMessage(text) {
     // Escapar caracteres especiales para prevenir XSS
     const escapedText = text
         .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
-    
+        // .replace(/</g, '&lt;')
+        // .replace(/>/g, '&gt;')
     // Convertir Markdown básico
     return escapedText
         .replace(/\n/g, '<br>')  // Saltos de línea
@@ -27,14 +26,14 @@ export function addMessage(text, sender, chatMessages) {
     
     const messageElement = document.createElement('div');
     messageElement.className = 'message-enter mb-4';
-    
+    console.log('Adding message:', text, 'from:', sender);
     const formattedText = formatMessage(text);
-
+    console.log('Formatted text:', formattedText);
     if (sender === 'user') {
         messageElement.innerHTML = `
             <div class="flex justify-end">
                 <div class="bg-primary-100 p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-200">
-                    <p class="text-gray-800">${formattedText}</p>
+                    <p class="text-gray-800 text-left">${formattedText}</p>
                 </div>
             </div>
             <div class="text-xs text-primary-500 mt-1 text-right">${timeString}</div>
@@ -46,7 +45,7 @@ export function addMessage(text, sender, chatMessages) {
                     🤖
                 </div>
                 <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                    <p class="text-gray-800">${formattedText}</p>
+                    <p class="text-gray-800 text-left">${formattedText}</p>
                 </div>
             </div>
             <div class="text-xs text-primary-500 mt-1 pl-10">${timeString}</div>
@@ -123,7 +122,7 @@ export function createStreamingMessageElement(id) {
                 🤖
             </div>
             <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                <p class="text-gray-800" id="${id}-content"></p>
+                <p class="text-gray-800 text-left" id="${id}-content"></p>
             </div>
         </div>
         <div class="text-xs text-primary-500 mt-1 pl-10">${timeString}</div>
