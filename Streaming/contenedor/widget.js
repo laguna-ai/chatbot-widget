@@ -1,7 +1,7 @@
 // widget/widget.js
 
-import { getOrGenerateSessionId, sendMessageToBot } from './apiService.js';
-import { addMessage, showTypingIndicator, hideTypingIndicator, initWidget } from './domUtils.js';
+import { getOrGenerateSessionId, sendMessageToBotStream } from './apiService.js';
+import { addMessage, showTypingIndicator, hideTypingIndicator, initWidget, createStreamingMessageElement, updateMessageElement,finalizeMessageElement} from './domUtils.js';
 
 export function initializeWidget() {
     // DOM Elements
@@ -20,7 +20,8 @@ export function initializeWidget() {
     let isTyping = false;
     let suggestionsVisible = false;
     let chatHistory = [];
-    const CHATBOT_API_URL = 'http://localhost:7071/api/webhook';
+    const CHATBOT_API_URL = 'https://server-funcs.azurewebsites.net/api/webhook?';
+    //const CHATBOT_API_URL = 'http://localhost:7071/api/webhook';
     const startTime = performance.now();
     const sessionId = getOrGenerateSessionId();
     const endTime = performance.now();
@@ -83,12 +84,15 @@ export function initializeWidget() {
     }
     
     // Send Message
+    
     async function sendMessage() {
         const message = userInput.value.trim();
         if (message === '' || isTyping) return;
         
         // Add user message to chat
         addMessage(message, 'user', chatMessages);
+        
+        
         userInput.value = '';
         
         // Hide suggestions if visible
@@ -102,33 +106,51 @@ export function initializeWidget() {
         isTyping = true;
         showTypingIndicator(typingIndicator, chatMessages);
         
-        try {
-            // Send message to API
-            const startApiCall = performance.now();
-            const { botMessage, updatedHistory } = await sendMessageToBot(
-                message, 
-                sessionId, 
-                CHATBOT_API_URL, 
-                chatHistory
-            );
-            const endApiCall = performance.now();
-            console.log(`sendMessageToBot runtime: ${endApiCall - startApiCall} ms`);
-            
-            // Update chat history
-            chatHistory = updatedHistory;
-            
-            // Add bot response to chat
-            addMessage(botMessage, 'bot', chatMessages);
-            
-        } catch (error) {
-            console.error('Error sending message:', error);
-            addMessage('Error de conexión. Por favor, intenta de nuevo.', 'bot', chatMessages);
-        } finally {
-            // Hide typing indicator
-            hideTypingIndicator(typingIndicator);
-            isTyping = false;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+        // Create streaming message container
+        const messageId = `msg-${Date.now()}`;
+        const streamingMessage = createStreamingMessageElement(messageId);
+        chatMessages.appendChild(streamingMessage);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        let fullResponse = '';
+        
+        // Use streaming API with history
+        sendMessageToBotStream(
+            message,
+            sessionId,
+            CHATBOT_API_URL,
+            chatHistory,  // Pasamos el historial completo
+            (chunk) => {
+                // Process each chunk
+                fullResponse += chunk;
+                updateMessageElement(messageId, chunk);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            },
+            () => {
+                // On complete
+                finalizeMessageElement(messageId, fullResponse);
+                
+                // Actualizar historial con la respuesta completa
+                chatHistory.push({ role: 'user', content: message });
+                chatHistory.push({ role: 'assistant', content: fullResponse });
+                
+                // ACTUALIZAR HISTORIAL EN EL BACKEND (nuevo)
+                updateHistoryOnBackend(sessionId, chatHistory);
+
+                hideTypingIndicator(typingIndicator);
+                isTyping = false;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            },
+            (error) => {
+                // On error
+                updateMessageElement(messageId, '❌ Error en la conexión');
+                console.error('Streaming error:', error);
+                
+                hideTypingIndicator(typingIndicator);
+                isTyping = false;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        );
     }
     
     // Handle suggestion button clicks
