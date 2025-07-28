@@ -72,3 +72,25 @@ export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHisto
         onError(error);
     });
 }
+
+const UPDATE_HISTORY_URL = "https://aux-funcs.azurewebsites.net/api/update_history?"
+
+// Función para actualizar el historial en el backend
+export function updateHistoryOnBackend(sessionId, history) {
+    fetch(UPDATE_HISTORY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            session_id: sessionId,
+            history: history
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('Error updating history:', response.status);
+        }
+    })
+    .catch(error => {
+        console.error('Failed to update history:', error);
+    });
+}
