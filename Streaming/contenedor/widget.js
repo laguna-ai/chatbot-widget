@@ -1,6 +1,6 @@
 // widget/widget.js
 
-import { getOrGenerateSessionId, sendMessageToBotStream } from './apiService.js';
+import { getOrGenerateSessionId, sendMessageToBotStream,updateHistoryOnBackend } from './apiService.js';
 import { addMessage, showTypingIndicator, hideTypingIndicator, initWidget, createStreamingMessageElement, updateMessageElement,finalizeMessageElement} from './domUtils.js';
 
 export function initializeWidget() {
