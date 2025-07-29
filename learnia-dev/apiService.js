@@ -8,13 +8,12 @@ export function getOrGenerateSessionId() {
             const v = c === 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
-        localStorage.setItem('chatbotSessionId', sessionId);
+        sessionStorage.setItem('chatbotSessionId', sessionId);
     }
     return sessionId;
 }
 
-export async function sendMessageToBot(userMessage, sessionId, apiUrl, chatHistory = []) {
-    // Construir la sesión en el formato que espera Dialogflow
+export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHistory, onChunk, onComplete, onError) {
     const sessionPath = `projects/YOUR_PROJECT_ID/locations/us-central1/agents/YOUR_AGENT_ID/sessions/${sessionId}`;
     
     // Construir el payload según la nueva estructura
@@ -31,52 +30,67 @@ export async function sendMessageToBot(userMessage, sessionId, apiUrl, chatHisto
         requestPayload.sessionInfo.parameters.context = chatHistory;
     }
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestPayload)
-        });
-
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestPayload)
+    })
+    .then(response => {
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API Error: ${response.status} - ${errorText}`);
+            throw new Error(`API Error: ${response.status}`);
         }
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-        const data = await response.json();
-        
-        // Extraer la respuesta del bot
-        let botMessage = "No se pudo obtener una respuesta válida";
-        if (data.fulfillmentResponse?.messages?.length > 0) {
-            const firstMessage = data.fulfillmentResponse.messages[0];
-            if (firstMessage.text?.text?.length > 0) {
-                botMessage = firstMessage.text.text[0];
+        function processStream({ done, value }) {
+            if (done) {
+                onComplete();
+                return;
             }
+            
+            buffer += decoder.decode(value, { stream: true });
+            
+            let eventEndIndex;
+            while ((eventEndIndex = buffer.indexOf('\n\n')) !== -1) {
+                const eventData = buffer.substring(0, eventEndIndex);
+                buffer = buffer.substring(eventEndIndex + 2);
+                
+                if (eventData.startsWith('data: ')) {
+                    const chunk = eventData.replace('data: ', '');
+                    onChunk(chunk);
+                }
+            }
+            
+            return reader.read().then(processStream);
         }
         
-        // Extraer el historial actualizado
-        let updatedHistory = chatHistory;
-        if (data.sessionInfo?.parameters?.context) {
-            updatedHistory = data.sessionInfo.parameters.context;
-        } else {
-            // Si no viene historial actualizado, agregamos el nuevo mensaje manualmente
-            updatedHistory = [
-                ...chatHistory,
-                { role: 'user', content: userMessage },
-                { role: 'assistant', content: botMessage }
-            ];
+        return reader.read().then(processStream);
+    })
+    .catch(error => {
+        onError(error);
+    });
+}
+
+const UPDATE_HISTORY_URL = "https://aux-funcs.azurewebsites.net/api/update_history?"
+
+// Función para actualizar el historial en el backend
+export function updateHistoryOnBackend(sessionId, history) {
+    fetch(UPDATE_HISTORY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            session_id: sessionId,
+            history: history
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('Error updating history:', response.status);
         }
-        
-        return {
-            botMessage,
-            updatedHistory
-        };
-        
-    } catch (error) {
-        console.error('Error in sendMessageToBot:', error);
-        return {
-            botMessage: 'Error de conexión. Por favor, intenta de nuevo.',
-            updatedHistory: chatHistory
-        };
-    }
+    })
+    .catch(error => {
+        console.error('Failed to update history:', error);
+    });
 }

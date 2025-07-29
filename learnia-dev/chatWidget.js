@@ -1,7 +1,6 @@
 // chatWidget.js
-
-import { getOrGenerateSessionId, sendMessageToBot } from './apiService.js';
-import { addMessage, showTypingIndicator, hideTypingIndicator, initWidget } from './domUtils.js';
+import { getOrGenerateSessionId, sendMessageToBotStream, updateHistoryOnBackend } from './apiService.js';
+import { addMessage, showTypingIndicator, hideTypingIndicator, initWidget, createStreamingMessageElement, updateMessageElement,finalizeMessageElement} from './domUtils.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
@@ -22,9 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let isChatOpen = false;
     let isTyping = false;
     let suggestionsVisible = false;
-    let chatHistory = []; // Almacena el historial de la conversación
-    const CHATBOT_API_URL = 'https://funciones-agente.azurewebsites.net/api/webhook';
-    const sessionId = getOrGenerateSessionId(); // Obtener session ID
+    let chatHistory = [];
+    const CHATBOT_API_URL = 'https://server-funcs.azurewebsites.net/api/webhook?';
+    //const CHATBOT_API_URL = 'http://localhost:7071/api/webhook';
+    const startTime = performance.now();
+    const sessionId = getOrGenerateSessionId();
+    const endTime = performance.now();
+    console.log(`getOrGenerateSessionId runtime: ${endTime - startTime} ms`);
     
     const initialMessages = [
         'Hola, soy MentIA, tu mentor virtual en Learnia Academy. ¡Bienvenido a tu experiencia de aprendizaje! ¿Tienes dudas sobre el contenido, las actividades o la plataforma? Estoy para ti.',
@@ -39,12 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configuración
     const widgetConfig = {
         apiEndpoint: CHATBOT_API_URL,
-        initialMessage: randomInitialMessage
+        initialMessage:  randomInitialMessage
     };
     
     // Inicializar widget
     initWidget(widgetConfig);
-    
+
     // Toggle Chat Window
     chatbotToggle.addEventListener('click', function() {
         isChatOpen = !isChatOpen;
@@ -64,23 +67,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Close Chat
-    closeChat.addEventListener('click', function() {
-        chatbotWindow.classList.add('hidden');
-        isChatOpen = false;
-        chatbotToggle.innerHTML = '<i class="fas fa-comment-dots text-2xl"></i>';
-        chatbotToggle.classList.remove('bg-secondary-600', 'hover:bg-secondary-700');
-        chatbotToggle.classList.add('bg-primary-600', 'hover:bg-primary-700');
-    });
+    if (closeChat) {
+        closeChat.addEventListener('click', function() {
+            alert('Función de cerrar implementada en la versión completa');
+        });
+    }
     
     // Minimize Chat
-    minimizeChat.addEventListener('click', function() {
-        chatbotWindow.classList.add('hidden');
-        isChatOpen = false;
-        chatbotToggle.innerHTML = '<i class="fas fa-comment-dots text-2xl"></i>';
-        chatbotToggle.classList.remove('bg-secondary-600', 'hover:bg-secondary-700');
-        chatbotToggle.classList.add('bg-primary-600', 'hover:bg-primary-700');
-    });
-
+    if (minimizeChat) {
+        minimizeChat.addEventListener('click', function() {
+            alert('Función de minimizar implementada en la versión completa');
+        });
+    }
+    
     // Reset Session
     if (resetSessionBtn) {
         resetSessionBtn.addEventListener('click', function () {
@@ -88,30 +87,36 @@ document.addEventListener('DOMContentLoaded', function() {
             location.reload(); // Opcional: recarga para reiniciar todo
         });
     }
-    
+
+
     // Toggle Quick Suggestions
-    suggestionsToggle.addEventListener('click', function() {
-        suggestionsVisible = !suggestionsVisible;
-        if (suggestionsVisible) {
-            quickSuggestions.classList.remove('hidden');
-            suggestionsToggle.innerHTML = '<i class="fas fa-chevron-up mr-1"></i> Ocultar';
-        } else {
-            quickSuggestions.classList.add('hidden');
-            suggestionsToggle.innerHTML = '<i class="fas fa-lightbulb mr-1"></i> Sugerencias';
-        }
-    });
+    if (suggestionsToggle) {
+        suggestionsToggle.addEventListener('click', function() {
+            suggestionsVisible = !suggestionsVisible;
+            if (suggestionsVisible) {
+                quickSuggestions.classList.remove('hidden');
+                suggestionsToggle.innerHTML = '<i class="fas fa-chevron-up mr-1"></i> Ocultar';
+            } else {
+                quickSuggestions.classList.add('hidden');
+                suggestionsToggle.innerHTML = '<i class="fas fa-lightbulb mr-1"></i> Sugerencias';
+            }
+        });
+    }
     
     // Send Message
+    
     async function sendMessage() {
         const message = userInput.value.trim();
         if (message === '' || isTyping) return;
         
         // Add user message to chat
         addMessage(message, 'user', chatMessages);
+        
+        
         userInput.value = '';
         
         // Hide suggestions if visible
-        if (suggestionsVisible) {
+        if (suggestionsVisible && quickSuggestions) {
             quickSuggestions.classList.add('hidden');
             suggestionsVisible = false;
             suggestionsToggle.innerHTML = '<i class="fas fa-lightbulb mr-1"></i> Sugerencias';
@@ -121,45 +126,75 @@ document.addEventListener('DOMContentLoaded', function() {
         isTyping = true;
         showTypingIndicator(typingIndicator, chatMessages);
         
-        try {
-            // Send message to API
-            const { botMessage, updatedHistory } = await sendMessageToBot(
-                message, 
-                sessionId, 
-                CHATBOT_API_URL, 
-                chatHistory
-            );
-            
-            // Update chat history
-            chatHistory = updatedHistory;
-            
-            // Add bot response to chat
-            addMessage(botMessage, 'bot', chatMessages);
-            
-        } catch (error) {
-            console.error('Error sending message:', error);
-            addMessage('Error de conexión. Por favor, intenta de nuevo.', 'bot', chatMessages);
-        } finally {
-            // Hide typing indicator
-            hideTypingIndicator(typingIndicator);
-            isTyping = false;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+        // Create streaming message container
+        const messageId = `msg-${Date.now()}`;
+        const streamingMessage = createStreamingMessageElement(messageId);
+        chatMessages.appendChild(streamingMessage);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        let fullResponse = '';
+        
+        // Use streaming API with history
+        sendMessageToBotStream(
+            message,
+            sessionId,
+            CHATBOT_API_URL,
+            chatHistory,  // Pasamos el historial completo
+            (chunk) => {
+                // Process each chunk
+                fullResponse += chunk;
+                updateMessageElement(messageId, chunk);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            },
+            () => {
+                // On complete
+                finalizeMessageElement(messageId, fullResponse);
+                
+                // Actualizar historial con la respuesta completa
+                chatHistory.push({ role: 'user', content: message });
+                chatHistory.push({ role: 'assistant', content: fullResponse });
+                
+                // ACTUALIZAR HISTORIAL EN EL BACKEND (nuevo)
+                updateHistoryOnBackend(sessionId, chatHistory);
+
+                hideTypingIndicator(typingIndicator);
+                isTyping = false;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            },
+            (error) => {
+                // On error
+                updateMessageElement(messageId, '❌ Error en la conexión');
+                console.error('Streaming error:', error);
+                
+                hideTypingIndicator(typingIndicator);
+                isTyping = false;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        );
     }
     
     // Handle suggestion button clicks
-    suggestionBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            userInput.value = this.textContent.trim();
-            userInput.focus();
+    if (suggestionBtns.length > 0) {
+        suggestionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (userInput) {
+                    userInput.value = this.textContent.trim();
+                    userInput.focus();
+                }
+            });
         });
-    });
+    }
     
     // Event Listeners
-    sendButton.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+    }
+    
+    if (userInput) {
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
 });

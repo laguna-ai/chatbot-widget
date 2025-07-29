@@ -1,5 +1,24 @@
 // domUtils.js
 
+function formatMessage(text) {
+    if (!text) return '';
+    
+    // Escapar caracteres especiales para prevenir XSS
+    const escapedText = text
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+        // .replace(/</g, '&lt;')
+        // .replace(/>/g, '&gt;')
+    // Convertir Markdown básico
+    return escapedText
+        .replace(/\n/g, '<br>')  // Saltos de línea
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negritas
+        .replace(/\*(.*?)\*/g, '<em>$1</em>'); // Cursivas (opcional)
+}
+
+
+
 // Función para agregar un mensaje al chat
 export function addMessage(text, sender, chatMessages) {
     const now = new Date();
@@ -7,12 +26,14 @@ export function addMessage(text, sender, chatMessages) {
     
     const messageElement = document.createElement('div');
     messageElement.className = 'message-enter mb-4';
-    
+    console.log('Adding message:', text, 'from:', sender);
+    const formattedText = formatMessage(text);
+    console.log('Formatted text:', formattedText);
     if (sender === 'user') {
         messageElement.innerHTML = `
             <div class="flex justify-end">
                 <div class="bg-primary-100 p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-200">
-                    <p class="text-gray-800">${text}</p>
+                    <p class="text-gray-800 text-left">${formattedText}</p>
                 </div>
             </div>
             <div class="text-xs text-primary-500 mt-1 text-right">${timeString}</div>
@@ -24,7 +45,7 @@ export function addMessage(text, sender, chatMessages) {
                     🤖
                 </div>
                 <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                    <p class="text-gray-800">${text}</p>
+                    <p class="text-gray-800 text-left">${formattedText}</p>
                 </div>
             </div>
             <div class="text-xs text-primary-500 mt-1 pl-10">${timeString}</div>
@@ -80,5 +101,48 @@ export function initWidget(config) {
     
     if (config.secondaryColor) {
         document.documentElement.style.setProperty('--color-secondary-600', config.secondaryColor);
+    }
+}
+
+
+// STREAMING FUNCTIONS
+
+// Función para crear un elemento de mensaje vacío para streaming
+export function createStreamingMessageElement(id) {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = 'message-enter mb-4';
+    messageElement.id = id;
+    
+    messageElement.innerHTML = `
+        <div class="flex items-start">
+            <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
+                🤖
+            </div>
+            <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
+                <p class="text-gray-800 text-left" id="${id}-content"></p>
+            </div>
+        </div>
+        <div class="text-xs text-primary-500 mt-1 pl-10">${timeString}</div>
+    `;
+    
+    return messageElement;
+}
+
+// Función para actualizar un mensaje en streaming
+export function updateMessageElement(id, content) {
+    const contentElement = document.getElementById(`${id}-content`);
+    if (contentElement) {
+        contentElement.innerHTML += formatMessage(content);
+    }
+}
+
+// Función para finalizar un mensaje en streaming
+export function finalizeMessageElement(id, content) {
+    const contentElement = document.getElementById(`${id}-content`);
+    if (contentElement) {
+        contentElement.innerHTML = formatMessage(content);
     }
 }

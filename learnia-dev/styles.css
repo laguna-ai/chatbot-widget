@@ -1,6 +1,6 @@
 
-/* @import "tailwindcss"; */
-/* @config "./tailwind.config.js"; */
+@import "tailwindcss";
+@config "./tailwind.config.js";
 
 .chatbot-transition {
     transition: all 0.3s ease-in-out;
