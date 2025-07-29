@@ -1,5 +1,25 @@
-# chatbot-widget
+# Chatbot Widget
 
-https://laguna-ai.github.io/chatbot-widget/
+Este repositorio contiene un **widget de chatbot** diseñado para ser fácilmente integrado en cualquier sitio web.
 
-https://laguna-ai.github.io/chatbot-widget/widget/
+📦 **Demo en vivo**  
+- [Plataforma de visualizacón del widget](https://laguna-ai.github.io/Streaming/)  
+- [Sólo widget embebido](https://laguna-ai.github.io/learnia-prod/)
+
+---
+
+## ✨ Generación del CSS Estático con Tailwind
+
+Para generar el archivo `.css` a partir de Tailwind, sigue los pasos descritos en la documentación oficial de Tailwind CLI:
+
+🔗 [Guía de instalación de Tailwind CLI](https://tailwindcss.com/docs/installation/tailwind-cli)
+
+### ✅ Consideraciones adicionales
+
+- Si necesitas incluir **paletas personalizadas** (colores primarios y secundarios), asegúrate de crear un archivo `tailwind.config.js`. Puedes usar como referencia la estructura del archivo en la carpeta `learnia-dev`.
+
+- Para que el archivo de configuración sea tomado en cuenta durante la compilación del CSS, añade la siguiente línea justo después de la importación principal en tu archivo `styles.css`:
+
+```css
+@import "tailwindcss";
+@config "./tailwind.config.js";
