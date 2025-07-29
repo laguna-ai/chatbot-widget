@@ -3,8 +3,8 @@
 Este repositorio contiene un **widget de chatbot** diseñado para ser fácilmente integrado en cualquier sitio web.
 
 📦 **Demo en vivo**  
-- [Plataforma de visualizacón del widget](https://laguna-ai.github.io/Streaming/)  
-- [Sólo widget embebido](https://laguna-ai.github.io/learnia-prod/)
+- [Plataforma de visualizacón del widget](https://laguna-ai.github.io/chatbot-widget/Streaming/)  
+- [Sólo widget embebido](https://laguna-ai.github.io/chatbot-widget/learnia-prod/)
 
 ---
 
