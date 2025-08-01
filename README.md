@@ -23,3 +23,10 @@ Para generar el archivo `.css` a partir de Tailwind, sigue los pasos descritos e
 ```css
 @import "tailwindcss";
 @config "./tailwind.config.js";
+```
+- Para minificación del .css estático, el cual es mejor para producción, se puede correr
+```bash
+npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --minify
+```
+en la terminal, en vez del que dice en la documentación (el cual no tiene la bandera de minify).
+
