@@ -15,6 +15,9 @@ export function initializeWidget() {
     const quickSuggestions = document.getElementById('quick-suggestions');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
     const resetSessionBtn = document.getElementById('reset-session');
+    
+    // Limpiar sessionId al refrescar la página
+    sessionStorage.removeItem('chatbotSessionId');
 
     // Estado
     let isTyping = false;
