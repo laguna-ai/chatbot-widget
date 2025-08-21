@@ -15,7 +15,7 @@ function formatMessage(text) {
         .replace(/\n/g, '<br>')  // Saltos de línea
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negritas
         .replace(/\*(.*?)\*/g, '<em>$1</em>') // Cursivas (opcional)
-        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'); // Links
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#0066cc; text-decoration:underline;">$1</a>'); // Links
 }
 
 
