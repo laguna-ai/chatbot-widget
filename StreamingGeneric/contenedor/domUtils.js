@@ -7,14 +7,15 @@ function formatMessage(text) {
     const escapedText = text
         .replace(/&/g, '&amp;')
         .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-        // .replace(/</g, '&lt;')
-        // .replace(/>/g, '&gt;')
+        .replace(/'/g, '&#039;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     // Convertir Markdown básico
     return escapedText
         .replace(/\n/g, '<br>')  // Saltos de línea
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negritas
-        .replace(/\*(.*?)\*/g, '<em>$1</em>'); // Cursivas (opcional)
+        .replace(/\*(.*?)\*/g, '<em>$1</em>') // Cursivas (opcional)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'); // Links
 }
 
 
