@@ -1,7 +1,7 @@
 // widget/widget.js
 
 import { getOrGenerateSessionId, sendMessageToBotStream, updateHistoryOnBackend } from './apiService.js';
-import { addMessage, showTypingIndicator, hideTypingIndicator, initWidget, createStreamingMessageElement, updateMessageElement,finalizeMessageElement} from './domUtils.js';
+import { addMessage, initWidget, createStreamingMessageElement, updateMessageElement, finalizeMessageElement } from './domUtils.js';
 
 export function initializeWidget() {
     // DOM Elements
@@ -10,7 +10,7 @@ export function initializeWidget() {
     const chatMessages = document.getElementById('chat-messages');
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
-    const typingIndicator = document.getElementById('typing-indicator');
+    // const typingIndicator = document.getElementById('typing-indicator');
     const suggestionsToggle = document.getElementById('suggestions-toggle');
     const quickSuggestions = document.getElementById('quick-suggestions');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
@@ -106,8 +106,7 @@ export function initializeWidget() {
         }
         
         // Show typing indicator
-        isTyping = true;
-        showTypingIndicator(typingIndicator, chatMessages);
+    isTyping = true;
         
         // Create streaming message container
         const messageId = `msg-${Date.now()}`;
@@ -140,7 +139,7 @@ export function initializeWidget() {
                 // ACTUALIZAR HISTORIAL EN EL BACKEND (nuevo)
                 updateHistoryOnBackend(sessionId, chatHistory);
 
-                hideTypingIndicator(typingIndicator);
+                // hideTypingIndicator(typingIndicator);
                 isTyping = false;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             },
@@ -149,7 +148,7 @@ export function initializeWidget() {
                 updateMessageElement(messageId, '❌ Error en la conexión');
                 console.error('Streaming error:', error);
                 
-                hideTypingIndicator(typingIndicator);
+                // hideTypingIndicator(typingIndicator);
                 isTyping = false;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }

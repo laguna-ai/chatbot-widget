@@ -1,7 +1,7 @@
 /* Estilos específicos para el widget */
 #chatbot-window {
     height: 500px;
-    border: 1px solid #e2e8f0; /* Borde sutil */
+    border: 2px solid #481B66; /* Borde sutil */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra similar a las cards */
 }
 

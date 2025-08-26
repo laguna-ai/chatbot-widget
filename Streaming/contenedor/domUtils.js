@@ -22,37 +22,31 @@ function formatMessage(text) {
 
 // Función para agregar un mensaje al chat
 export function addMessage(text, sender, chatMessages) {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
+    const getTimeString = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const formattedText = formatMessage(text);
     const messageElement = document.createElement('div');
     messageElement.className = 'message-enter mb-4';
-    console.log('Adding message:', text, 'from:', sender);
-    const formattedText = formatMessage(text);
-    console.log('Formatted text:', formattedText);
-    if (sender === 'user') {
-        messageElement.innerHTML = `
-            <div class="flex justify-end">
+
+    // Generador de HTML para usuario y bot
+    const getMessageHTML = (isUser, content, time) =>
+        isUser
+            ? `<div class="flex justify-end">
                 <div class="bg-primary-100 p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-200">
-                    <p class="text-gray-800 text-left">${formattedText}</p>
+                    <p class="text-primary-900 text-left">${content}</p>
                 </div>
             </div>
-            <div class="text-xs text-primary-500 mt-1 text-right">${timeString}</div>
-        `;
-    } else {
-        messageElement.innerHTML = `
-            <div class="flex items-start">
+            <div class="text-xs text-primary-500 mt-1 text-right">${time}</div>`
+            : `<div class="flex items-start">
                 <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
-                    🤖
+                    <img src="contenedor/img/12.png" alt="MentIA" class="w-6 h-6">
                 </div>
                 <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                    <p class="text-gray-800 text-left">${formattedText}</p>
+                    <p class="text-primary-900 text-left">${content}</p>
                 </div>
             </div>
-            <div class="text-xs text-primary-500 mt-1 pl-10">${timeString}</div>
-        `;
-    }
-    
+            <div class="text-xs text-primary-500 mt-1 pl-10">${time}</div>`;
+
+    messageElement.innerHTML = getMessageHTML(sender === 'user', formattedText, getTimeString());
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -120,10 +114,16 @@ export function createStreamingMessageElement(id) {
     messageElement.innerHTML = `
         <div class="flex items-start">
             <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
-                🤖
+                <img src="contenedor/img/12.png" alt="MentIA" class="w-6 h-6">
             </div>
             <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                <p class="text-gray-800 text-left" id="${id}-content"></p>
+                <p class="text-primary-900 text-left" id="${id}-content">
+                    <span class="typing-indicator">
+                        <span class="text-primary-600">.</span>
+                        <span class="text-primary-600">.</span>
+                        <span class="text-primary-600">.</span>
+                    </span>
+                </p>
             </div>
         </div>
         <div class="text-xs text-primary-500 mt-1 pl-10">${timeString}</div>
@@ -136,9 +136,13 @@ export function createStreamingMessageElement(id) {
 export function updateMessageElement(id, content) {
     const contentElement = document.getElementById(`${id}-content`);
     if (contentElement) {
+        // Elimina el typing indicator si existe (solo la primera vez)
+        const typing = contentElement.querySelector('.typing-indicator');
+        if (typing) typing.remove();
         contentElement.innerHTML += formatMessage(content);
     }
 }
+
 
 // Función para finalizar un mensaje en streaming
 export function finalizeMessageElement(id, content) {

@@ -7,7 +7,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="./tailwind-config.js">  </script>
+    <script src="./tailwind-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@100..900&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Widget Container -->
@@ -21,10 +24,10 @@
         <!-- Chat Window -->
         <div id="chatbot-window" class="hidden absolute bottom-20 right-0 w-80 max-h-[80vh] h-auto bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col border border-primary-200">
             <!-- Chat Header -->
-            <div class="bg-gradient-to-r from-primary-600 to-primary-800 text-white p-4 flex items-center justify-between rounded-t-xl">
+            <div class="bg-primary-600 text-white p-4 flex items-center justify-between rounded-t-xl">
                 <div class="flex items-center">
                     <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
-                        🤖
+                        <img src="img/12.png" alt="MentIA" class="w-6 h-6">
                     </div>
                     <div>
                         <h3 class="font-semibold">MentIA</h3>
@@ -43,29 +46,17 @@
                 <div class="message-enter mb-4">
                     <div class="flex items-start">
                         <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
-                            🤖
+                            <img src="img/12.png" alt="MentIA" class="w-6 h-6">
                         </div>
                         <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                            <p class="text-gray-800">¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</p>
+                            <p class="text-primary-900 text-left">¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</p>
                         </div>
                     </div>
                     <div class="text-xs text-primary-500 mt-1 pl-10">Ahora</div>
                 </div>
             </div>
             
-            <!-- Typing Indicator (Hidden by default) -->
-            <div id="typing-indicator" class="hidden px-4 py-2">
-                <div class="flex items-center">
-                    <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
-                        🤖
-                    </div>
-                    <div class="typing-indicator bg-white p-3 rounded-lg shadow-sm border border-primary-100">
-                        <span class="text-primary-600">.</span>
-                        <span class="text-primary-600">.</span>
-                        <span class="text-primary-600">.</span>
-                    </div>
-                </div>
-            </div>
+            
             
             <!-- Input Area -->
             <div class="border-t border-primary-200 p-3 bg-white">
