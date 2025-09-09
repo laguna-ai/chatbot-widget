@@ -32,8 +32,8 @@ export function addMessage(msg, role, chatMessages) {
     if (role === "user") {
         msgDiv.innerHTML = `
             <div class="flex justify-end">
-                <div class="bg-primary-100 p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-200">
-                    <p class="text-primary-900 text-left">${formatted}</p>
+                <div class="bg-primary-100 p-3 rounded-lg shadow-sm max-w-[85%] border border-primary-200">
+                    <p class="text-primary-900 text-left text-sm">${formatted}</p>
                 </div>
             </div>
             <div class="text-xs text-primary-500 mt-1 text-right">${time}</div>
@@ -44,8 +44,8 @@ export function addMessage(msg, role, chatMessages) {
                 <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
                     <img src="img/12.png" alt="MentIA" class="w-6 h-6">
                 </div>
-                <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                    <p class="text-primary-900 text-left">${formatted}</p>
+                <div class="bg-white p-3 rounded-lg shadow-sm max-w-[85%] border border-primary-100">
+                    <p class="text-primary-900 text-left text-sm">${formatted}</p>
                 </div>
             </div>
             <div class="text-xs text-primary-500 mt-1 pl-10">${time}</div>
@@ -93,8 +93,8 @@ export function createStreamingMessageElement(messageId) {
             <div class="w-8 h-8 rounded-full bg-white border border-primary-200 flex items-center justify-center mr-2 text-lg">
                 <img src="img/12.png" alt="MentIA" class="w-6 h-6">
             </div>
-            <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                <p class="text-primary-900 text-left" id="${messageId}-content">
+            <div class="bg-white p-3 rounded-lg shadow-sm max-w-[85%] border border-primary-100">
+                <p class="text-primary-900 text-left text-sm" id="${messageId}-content">
                     <span class="typing-indicator">
                         <span class="text-primary-600">.</span>
                         <span class="text-primary-600">.</span>
