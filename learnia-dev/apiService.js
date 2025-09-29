@@ -78,13 +78,14 @@ export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHisto
 const UPDATE_HISTORY_URL = "https://aux-funcs.azurewebsites.net/api/update_history?"
 
 // Función para actualizar el historial en el backend
-export function updateHistoryOnBackend(sessionId, history) {
+export function updateHistoryOnBackend(sessionId, history, userName) {
     fetch(UPDATE_HISTORY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             session_id: sessionId,
-            history: history
+            history: history,
+            user_name: userName
         })
     })
     .then(response => {

@@ -2,6 +2,8 @@
 
 import { getOrGenerateSessionId, sendMessageToBotStream, updateHistoryOnBackend } from './apiService.js';
 import { addMessage, showTypingIndicator, hideTypingIndicator, initWidget, createStreamingMessageElement, updateMessageElement,finalizeMessageElement} from './domUtils.js';
+const userName = window.sessionStorage.getItem("userName") || 'Anónimo';
+
 
 export function initializeWidget() {
     // DOM Elements
@@ -124,7 +126,7 @@ export function initializeWidget() {
                 chatHistory.push({ role: 'assistant', content: fullResponse });
                 
                 // ACTUALIZAR HISTORIAL EN EL BACKEND (nuevo)
-                updateHistoryOnBackend(sessionId, chatHistory);
+                updateHistoryOnBackend(sessionId, chatHistory, userName);
 
                 hideTypingIndicator(typingIndicator);
                 isTyping = false;
@@ -138,7 +140,8 @@ export function initializeWidget() {
                 hideTypingIndicator(typingIndicator);
                 isTyping = false;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
+            },
+            userName // Pasar el nombre de usuario al enviar el mensaje
         );
     }
     

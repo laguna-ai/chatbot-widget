@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 finalizeMessageElement(messageId, fullResponse);
                 chatHistory.push({ role: "user", content: message });
                 chatHistory.push({ role: "assistant", content: fullResponse });
-                updateHistoryOnBackend(sessionId, chatHistory);
+                updateHistoryOnBackend(sessionId, chatHistory, userName);
                 isTyping = false;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             },

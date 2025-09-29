@@ -13,14 +13,14 @@ export function getOrGenerateSessionId() {
     return sessionId;
 }
 
-export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHistory, onChunk, onComplete, onError) {
+export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHistory, onChunk, onComplete, onError, userName) {
     const sessionPath = `projects/YOUR_PROJECT_ID/locations/us-central1/agents/YOUR_AGENT_ID/sessions/${sessionId}`;
     
     // Construir el payload según la nueva estructura
     const requestPayload = {
         sessionInfo: {
             session: sessionPath,
-            parameters: {}
+            parameters: { userName: userName }
         },
         text: userMessage
     };
@@ -76,13 +76,14 @@ export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHisto
 const UPDATE_HISTORY_URL = "https://aux-funcs.azurewebsites.net/api/update_history?"
 
 // Función para actualizar el historial en el backend
-export function updateHistoryOnBackend(sessionId, history) {
+export function updateHistoryOnBackend(sessionId, history, userName) {
     fetch(UPDATE_HISTORY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             session_id: sessionId,
-            history: history
+            history: history,
+            userName: userName
         })
     })
     .then(response => {
