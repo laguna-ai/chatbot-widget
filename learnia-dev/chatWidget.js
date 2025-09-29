@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const startTime = performance.now();
     let sessionId = getOrGenerateSessionId();
     const endTime = performance.now();
-    console.log(`getOrGenerateSessionId runtime: ${endTime - startTime} ms`);
 
     const initialMessages = [
         "Hola, soy MentIA, tu mentor virtual en Learnia Academy. ¡Bienvenido a tu experiencia de aprendizaje! ¿Tienes dudas sobre el contenido, las actividades o la plataforma? Estoy para ti.",
