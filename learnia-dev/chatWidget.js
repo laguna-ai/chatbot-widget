@@ -1,6 +1,7 @@
 
 import { getOrGenerateSessionId, sendMessageToBotStream, updateHistoryOnBackend } from "./apiService.js";
 import { addMessage, initWidget, createStreamingMessageElement, updateMessageElement, finalizeMessageElement } from "./domUtils.js";
+const userName = window.sessionStorage.getItem("userName") || 'Anónimo';
 
 document.addEventListener("DOMContentLoaded", function () {
     // Elementos del DOM
@@ -133,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         let fullResponse = "";
-
+        
         sendMessageToBotStream(
             message,
             sessionId,
@@ -157,7 +158,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error("Streaming error:", error);
                 isTyping = false;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
+            },
+            userName
         );
     }
 

@@ -13,14 +13,16 @@ export function getOrGenerateSessionId() {
     return sessionId;
 }
 
-export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHistory, onChunk, onComplete, onError) {
+export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHistory, onChunk, onComplete, onError, userName) {
     const sessionPath = `projects/YOUR_PROJECT_ID/locations/us-central1/agents/YOUR_AGENT_ID/sessions/${sessionId}`;
     
     // Construir el payload según la nueva estructura
     const requestPayload = {
         sessionInfo: {
             session: sessionPath,
-            parameters: {}
+            parameters: {
+                userName: userName
+            }
         },
         text: userMessage
     };
