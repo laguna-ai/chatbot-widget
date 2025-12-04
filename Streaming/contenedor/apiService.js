@@ -20,7 +20,7 @@ export function sendMessageToBotStream(userMessage, sessionId, apiUrl, chatHisto
     const requestPayload = {
         sessionInfo: {
             session: sessionPath,
-            parameters: {}
+            parameters: {'userName':'Anónimo'}
         },
         text: userMessage
     };
