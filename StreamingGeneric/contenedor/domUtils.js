@@ -127,7 +127,13 @@ export function createStreamingMessageElement(id) {
                 🤖
             </div>
             <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%] border border-primary-100">
-                <p class="text-gray-800 text-left" id="${id}-content"></p>
+                <p class="text-gray-800 text-left" id="${id}-content">
+                    <span class="typing-indicator">
+                        <span class="text-primary-600">.</span>
+                        <span class="text-primary-600">.</span>
+                        <span class="text-primary-600">.</span>
+                    </span>
+                </p>
             </div>
         </div>
         <div class="text-xs text-primary-500 mt-1 pl-10">${timeString}</div>
@@ -140,6 +146,9 @@ export function createStreamingMessageElement(id) {
 export function updateMessageElement(id, content) {
     const contentElement = document.getElementById(`${id}-content`);
     if (contentElement) {
+        // Remove the embedded typing indicator on first chunk
+        const typing = contentElement.querySelector('.typing-indicator');
+        if (typing) typing.remove();
         contentElement.innerHTML += formatMessage(content);
     }
 }
